@@ -2,6 +2,8 @@
 Scripts for TRN analysis:
 
 1. Run coembedding_perSample_metacell_allCells_v2.R --  co-embed and match scRNA-seq and scATAC-seq
+   
+
 
 2. Run regr_ep_prediction_v2_dje_BMP.R --  call e-p interactions by regression
 
@@ -12,3 +14,4 @@ Scripts for TRN analysis:
 4. Run construct_network_dje_BMP.R -- construct final TRN
 
 
+Image: `workflow.png`

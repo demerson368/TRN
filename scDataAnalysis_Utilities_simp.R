@@ -274,9 +274,6 @@ doBasicSeurat_atac <- function(mtx, npc = 50, top.variable = 0.2,
                           do.center = doCenter)
   
   
-  #seurat.obj <- RunPCA(object = seurat.obj,
-  #                     features = VariableFeatures(object = seurat.obj),
-  #                     verbose = FALSE, seed.use = 10, npc = npc)
   seurat.obj <- RunPCA(object = seurat.obj,
                        features = VariableFeatures(object = seurat.obj),
                        verbose = FALSE, npc = npc)

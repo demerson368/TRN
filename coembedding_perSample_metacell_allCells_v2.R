@@ -10,12 +10,11 @@ library(patchwork)
 args = commandArgs(T)
 sampleID0 = args[1]
 
-seuratAtacPath =  '/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/14_import_r_nr_add_metadata/t.all.40.objects/t.all.40.atac.blasts.1146.each.rds' #'Seurat_Objects/seurat_atac_non_binary_vap20000.rds'
-seuratRNAPath = '/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scRNA/42_add_finalized_cMeta_to_X01_samples/t.all.40.rds'
+seuratAtacPath =  '~/Dropbox/TRN/t.all.40.atac.blasts.1146.each.rds' #'Seurat_Objects/seurat_atac_non_binary_vap20000.rds'
+seuratRNAPath = '~/Dropbox/TRN/t.all.40.rds'
 reduction2use = 'pca' # pca or harmony
 
 ## load scRNA data and cell type annotation ####
-#seurat.rna <- readRDS('/mnt/isilon/tan_lab/uzuny/projects/cptca/real_samples/data/scrna/seurat/NB/filtered/integrated.dynamic.filtered.max_mit_pct_10.min_expressed_genes_1000.max_expressed_genes_10000.min_UMI_2000.max_UMI_50000/after_malig_calling/integrated_seurat_object.with_malignancy_labels.rds')
 seurat.rna <- readRDS(seuratRNAPath)
 seurat.rna <- UpdateSeuratObject(object = seurat.rna)
 seurat.rna = subset(seurat.rna, sample.name == sampleID0)
@@ -40,45 +39,21 @@ print("filtered peaks")
 nvap = 10000
 inherited.mdata <- seurat.atac@meta.data
 print("collect meta")
-#seurat.atac = R.utils::doCall(doBasicSeurat_atac_updated(mtx, npc = npc, 
-#                                         norm_by = 'logNormalize',
-#                                         top.variable = nvap,
-#                                         regressOnPca = TRUE,
-#                                         reg.var = 'nFeature_ATAC', 
-#                                         excludePks.fromVAP = filtered.pks, 
-#                                         meta.data =inherited.mdata))
-
-
-
-#seurat.atac = R.utils::doCall(doBasicSeurat_atac_updated(mtx, npc = npc,
-#                                         norm_by = 'logNormalize',
-#                                         top.variable = nvap,
-#                                         regressOnPca = TRUE,
-#                                         reg.var = 'nFeature_ATAC',
-#                                         meta.data =inherited.mdata))
 
 # Create Seurat object
-print("create seurat")
 seurat.atac <- CreateSeuratObject(counts = mtx, assay = 'ATAC', project = 'ATAC')
 # Normalize data
-print("normalize")
 seurat.atac <- NormalizeData(seurat.atac, normalization.method = 'LogNormalize')
-print("Identify variable features")
 seurat.atac <- FindVariableFeatures(seurat.atac, selection.method = 'vst', nfeatures = nvap)
-print("Scale data")
 seurat.atac <- ScaleData(seurat.atac, features = VariableFeatures(seurat.atac))
-print("Run PCA")
 seurat.atac <- RunPCA(seurat.atac, features = VariableFeatures(seurat.atac))
-print("Regress out unwanted sources of variation")
 reg.var <- 'nFeature_ATAC'
 seurat.atac <- ScaleData(seurat.atac, vars.to.regress = reg.var)
 #print("Add metadata")
 #seurat.atac$meta.data <- inherited.mdata
 
-print("doBasicSeurat_atac_updated called !!!!!!!!!!!!!!!")
 seurat.atac = RunUMAP(seurat.atac, reduction = 'pca', dim = 1:npc) %>% 
   FindNeighbors(reduction = 'pca', dim = 1:npc) %>% FindClusters(resolution = 0.2)
-print("update seurat.atac")
 
 seurat.atac <- UpdateSeuratObject(seurat.atac)
 saveRDS(seurat.atac,file = "intermediate_seurat_ver_1.rds")
@@ -89,24 +64,13 @@ p0 = DimPlot(seurat.atac, raster = F) + ggtitle('ATAC')
 
 ## use GAS = promote + gene body accessibility for label transfer ####
 if(all(names(seurat.atac@assays) != 'ACTIVITY')){
-  #activity.matrix = readRDS('Seurat_Objects/mtx_gene_activity_signac.rds')
-  #activity.matrix = activity.matrix[, colnames(seurat.atac)]
-  #seurat.atac[["ACTIVITY"]] <- CreateAssayObject(counts = activity.matrix)
   print("running activity")
 
   activity.matrix = readRDS('Seurat_Objects/mtx_gene_activity_signac.rds')
   activity.matrix = activity.matrix[, colnames(seurat.atac)]
-  #seurat.atac[["ACTIVITY"]] <- CreateAssayObject(counts = activity.matrix)
 
-  #atac.mtx = seurat.atac@assays$ATAC@counts #seurat.atac0@assays$ATAC@counts
-  #activity.matrix = generate_gene_cisActivity('/mnt/isilon/tan_lab/chenc6/Tools/SingleCellAnnotation/GRCh38/genes/genes.gtf',
-  #                                          atac.mtx,
-  #                                          include_body = T)
-
-  print("add activity")
   seurat.atac[["ACTIVITY"]] <- CreateAssayObject(counts = activity.matrix)
 
-  print("running normalize data")
   seurat.atac <- NormalizeData(
     object = seurat.atac,
     assay = 'ACTIVITY',
@@ -132,7 +96,6 @@ if(length(unique(seurat.rna$sample_name)) > length(unique(seurat.atac$region))){
 
 ## transfer label 
 DefaultAssay(seurat.rna) = refAssay
-#seurat.rna = LogNormalize(seurat.rna)
 seurat.rna = FindVariableFeatures(seurat.rna, nfeatures = 2200)
 vegs = VariableFeatures(seurat.rna)
 gfreq = rowMeans(seurat.rna@assays$RNA@counts > 0)
@@ -161,14 +124,9 @@ transfer.anchors <- FindTransferAnchors(reference = seurat.rna,
 
 
 ## co-embedding ####
-# note that we restrict the imputation to variable genes from scRNA-seq, but could impute the
-# full transcriptome if we wanted to
-
 refdata <- GetAssayData(seurat.rna, assay = refAssay, 
                         slot = "data")[genes4anchors %in% rownames(seurat.rna), ]
 
-# refdata (input) contains a scRNA-seq expression matrix for the scRNA-seq cells.  imputation
-# (output) will contain an imputed scRNA-seq matrix for each of the ATAC cells
 kweight = min(50, nrow(transfer.anchors@anchors) - 5)
 imputation <- TransferData(anchorset = transfer.anchors, refdata = refdata, 
                            weight.reduction = seurat.atac[["pca"]],
@@ -182,7 +140,7 @@ DefaultAssay(seurat.atac) = refAssay
 print("coembed")
 coembed <- merge(x = seurat.rna, y = seurat.atac)
 
-# Finally, we run PCA and UMAP on this combined object, to visualize the co-embedding of both
+# We run PCA and UMAP on this combined object, to visualize the co-embedding of both
 # datasets
 print("running scaled data anchors")
 coembed <- ScaleData(coembed, features = genes4anchors, do.scale = FALSE)
@@ -302,4 +260,3 @@ saveRDS(rna.mtx, file = paste0('Coembed_Results2_v2/rna_metacell_mtx_v2_noTFIDF_
 saveRDS(atac.mtx, file = paste0('Coembed_Results2_v2/atac_metacell_mtx_v2_noTFIDF_', sampleID0, '.rds'))
 message(paste('#of final metacells:', ncol(rna.mtx)))
 
-message('All Done!')
