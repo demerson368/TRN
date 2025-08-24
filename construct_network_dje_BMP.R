@@ -49,7 +49,7 @@ sourceCpp(code = '
 
 
 ## prepare gene expression fraction in the corresponding cell populations ####
-seurat.rna <- readRDS('/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scRNA/42_add_finalized_cMeta_to_X01_samples/t.all.40.rds')
+seurat.rna <- readRDS('~/Dropbox/TRN/t.all.40.rds')
 
 
 seurat.rna$BMP_like <- case_when(
@@ -92,7 +92,7 @@ save(zscore.all, dscore.all,
 
 
 load('chromVARObj/zscore_dscore_allPeaks_BMP.RData')
-seurat.atac <- readRDS('/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/14_import_r_nr_add_metadata/t.all.40.objects/t.all.40.atac.blasts.1146.each.rds')
+seurat.atac <- readRDS('~/Dropbox/TRN/t.all.40.atac.blasts.1146.each.rds')
 
 seurat.atac@meta.data <- seurat.atac@meta.data %>%
   mutate(BMP_like = case_when(
@@ -166,7 +166,7 @@ for(TRN.comparison in c('BMP_vs_nonBMP')){
   #sele.type = 'stringentPlus'  ## all, stringent or fixed or stringentPlus
   sele.type = 'all'
 
-  #degs_list <- readRDS("/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/16_construct-TRN/all.de.list.rds")
+  degs_list <- readRDS("/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/16_construct-TRN/all.de.list.rds")
   #degs_list <- read.csv("degs_BMP.txt")
   degs_list <- read_excel("Supplementary_Tables_Submission_xuj.xlsx",sheet = "ST7 BMP-like vs T-Spec DEGs") 
   #colnames(degs_list) <- "gene_name"
@@ -177,34 +177,34 @@ for(TRN.comparison in c('BMP_vs_nonBMP')){
   
   if(sele.type == 'all') degs = degs[abs(avg_log2FC) > 0.5 & p_val_adj < 0.01]
   
-  #if(sele.type == 'stringent'){
-  #  degs = degs[abs(avg_log2FC) > 0.5 & p_val_adj < 0.01]
-  #  degs1 = degs[abs(avg_log2FC) > 1 & p_val_adj < 0.01 & group != 'de.tfs']
-  #  degs2 = degs[abs(avg_log2FC) > 0.75 & p_val_adj < 0.01 & group == 'de.tfs']
-  #  degs = rbind(degs1, degs2)
-  #}
+  if(sele.type == 'stringent'){
+    degs = degs[abs(avg_log2FC) > 0.5 & p_val_adj < 0.01]
+    degs1 = degs[abs(avg_log2FC) > 1 & p_val_adj < 0.01 & group != 'de.tfs']
+    degs2 = degs[abs(avg_log2FC) > 0.75 & p_val_adj < 0.01 & group == 'de.tfs']
+    degs = rbind(degs1, degs2)
+  }
   
-  #if(sele.type == 'stringentPlus'){
-  #  degs = degs[abs(avg_log2FC) > 0.5 & p_val_adj < 0.01]
-  #  degs1 = degs[abs(avg_log2FC) > 1 & p_val_adj < 0.01 & group != 'de.tfs']
-  #  degs2 = degs[abs(avg_log2FC) > 0.75 & p_val_adj < 0.01 & group == 'de.tfs']
+  if(sele.type == 'stringentPlus'){
+    degs = degs[abs(avg_log2FC) > 0.5 & p_val_adj < 0.01]
+    degs1 = degs[abs(avg_log2FC) > 1 & p_val_adj < 0.01 & group != 'de.tfs']
+    degs2 = degs[abs(avg_log2FC) > 0.75 & p_val_adj < 0.01 & group == 'de.tfs']
     
-  #  surface.de = readRDS("/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/16_construct-TRN/de.surface.markers/de.surface.markers")
-  #  dd.surface = data.table(surface.de[surface.de$group == 'de.genes', ])
-  #  dd.surface = dd.surface[enriched ==  TRN.population, ]
-  #  dd.surface[, c('comparison', 'enriched') := NULL]
-  #  degs = rbind(degs1, degs2, dd.surface)
-  #}
+    surface.de = readRDS("/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/16_construct-TRN/de.surface.markers/de.surface.markers")
+    dd.surface = data.table(surface.de[surface.de$group == 'de.genes', ])
+    dd.surface = dd.surface[enriched ==  TRN.population, ]
+    dd.surface[, c('comparison', 'enriched') := NULL]
+    degs = rbind(degs1, degs2, dd.surface)
+  }
   
   
-  #if(sele.type == 'fixed'){
-  #    
-  #  top.tfs.de.and.da = readRDS("/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/16_construct-TRN/DA_and_DE_TFs/top.tfs.de.and.da.rds")
-  #  tfs = top.tfs.de.and.da[top.tfs.de.and.da$comparison == TRN.comparison, ]$gene
-  #  degs1 = degs[abs(avg_log2FC) > 1 & p_val_adj < 0.01 & group != 'de.tfs']
-  #  degs2 = degs[gene %in% tfs]
-  #  degs = rbind(degs1, degs2)
-  #}
+  if(sele.type == 'fixed'){
+      
+    top.tfs.de.and.da = readRDS("/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/16_construct-TRN/DA_and_DE_TFs/top.tfs.de.and.da.rds")
+    tfs = top.tfs.de.and.da[top.tfs.de.and.da$comparison == TRN.comparison, ]$gene
+    degs1 = degs[abs(avg_log2FC) > 1 & p_val_adj < 0.01 & group != 'de.tfs']
+    degs2 = degs[gene %in% tfs]
+    degs = rbind(degs1, degs2)
+  }
   
   print("construct TRN by  condition")
   ## construct TRN for a specify condition ####
@@ -257,7 +257,7 @@ for(TRN.comparison in c('BMP_vs_nonBMP')){
   if(T){
     ## filter by accessible peaks
     print("filter by acceeible peaks")
-    if(is.null(seurat.atac))seurat.atac <- readRDS('/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/14_import_r_nr_add_metadata/t.all.40.objects/t.all.40.atac.blasts.1146.each.rds')
+    if(is.null(seurat.atac))seurat.atac <- readRDS('~/Dropbox/TRN/t.all.40.atac.blasts.1146.each.rds')
      
     ctypes = seurat.atac$BMP_like
     mtx = seurat.atac@assays$ATAC@counts

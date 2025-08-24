@@ -4,7 +4,7 @@ library(Seurat)
 
 source('scDataAnalysis_Utilities_simp.R')
 #args = commandArgs(T)
-seuratPath = '/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/14_import_r_nr_add_metadata/t.all.40.objects/t.all.40.atac.blasts.1146.each.rds'#args[1]
+seuratPath = '~/Dropbox/TRN/t.all.40.atac.blasts.1146.each.rds'#args[1]
 chromvarPath = 'MetaData2/chromVar_output.rds'#args[2]
 ndownSample = 150000 #as.integer(args[3])
 

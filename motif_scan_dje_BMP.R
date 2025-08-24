@@ -7,7 +7,7 @@ library(GenomicRanges)
 
 ## check motif overlapping with any peak ####
 #seurat.atac = readRDS('SeuratObj/Seurat_25ETPsample_downsample_VFACS.rds')
-seurat.atac <- readRDS('/mnt/isilon/tan_lab/xuj5/ETP_ALL/Final_RScripts/scATAC/14_import_r_nr_add_metadata/t.all.40.objects/t.all.40.atac.blasts.1146.each.rds')
+seurat.atac <- readRDS('~/Dropbox/TRN/t.all.40.atac.blasts.1146.each.rds')
 
 peaks = rownames(seurat.atac)
 peaks = sapply(peaks, function(x) unlist(strsplit(x, ','))[1])
