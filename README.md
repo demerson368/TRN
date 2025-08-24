@@ -14,4 +14,4 @@ Scripts for TRN analysis:
 4. Run construct_network_dje_BMP.R -- construct final TRN
 
 
-Image: `workflow.png`
+<img src="workflow.png" alt="Logo" width="300">
